@@ -92,6 +92,8 @@ void dw8250_setup_port(struct uart_port *p)
 {
 	struct uart_8250_port *up = up_to_u8250p(p);
 	const struct dw8250_platform_data *plat = of_device_get_match_data(up->port.dev);
+	struct dw8250_port_data *d = p->private_data;
+	struct dw8250_data *data = container_of(d, struct dw8250_data, data);
 	u32 reg;
 
 	/*
@@ -110,8 +112,6 @@ void dw8250_setup_port(struct uart_port *p)
 	dw8250_writel_ext(p, DW_UART_DLF, 0);
 
 	if (reg) {
-		struct dw8250_port_data *d = p->private_data;
-
 		d->dlf_size = fls(reg);
 		p->get_divisor = dw8250_get_divisor;
 		p->set_divisor = dw8250_set_divisor;
@@ -138,5 +138,8 @@ void dw8250_setup_port(struct uart_port *p)
 
 	if (reg & DW_UART_CPR_SIR_MODE)
 		up->capabilities |= UART_CAP_IRDA;
+
+	if (reg & DW_UART_CPR_DMA_EXTRA)
+		data->dma_capable = 1;
 }
 EXPORT_SYMBOL_GPL(dw8250_setup_port);
