@@ -16,6 +16,10 @@ struct dw8250_port_data {
 	u8			dlf_size;
 };
 
+struct dw8250_platform_data {
+	u32 cpr;
+};
+
 struct dw8250_data {
 	struct dw8250_port_data	data;
 

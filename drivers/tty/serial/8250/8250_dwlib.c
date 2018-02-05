@@ -3,6 +3,7 @@
 
 #include <linux/bitops.h>
 #include <linux/device.h>
+#include <linux/of_device.h>
 #include <linux/io.h>
 #include <linux/kernel.h>
 #include <linux/serial_8250.h>
@@ -90,6 +91,7 @@ EXPORT_SYMBOL_GPL(dw8250_do_set_termios);
 void dw8250_setup_port(struct uart_port *p)
 {
 	struct uart_8250_port *up = up_to_u8250p(p);
+	const struct dw8250_platform_data *plat = of_device_get_match_data(up->port.dev);
 	u32 reg;
 
 	/*
@@ -116,8 +118,12 @@ void dw8250_setup_port(struct uart_port *p)
 	}
 
 	reg = dw8250_readl_ext(p, DW_UART_CPR);
-	if (!reg)
-		return;
+	if (!reg) {
+		if (!plat)
+			return;
+
+		reg = plat->cpr;
+	}
 
 	/* Select the type based on FIFO */
 	if (reg & DW_UART_CPR_FIFO_MODE) {
