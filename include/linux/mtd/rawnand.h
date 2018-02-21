@@ -490,11 +490,17 @@ struct nand_id {
  * @wq:			wait queue to sleep on if a NAND operation is in
  *			progress used instead of the per chip wait queue
  *			when a hw controller is available.
+ * @attach_chip:	Callback that may be called between nand_detect() and
+ *			nand_scan_tail() during nand_scan() (optional).
+ * @detach_chip:	Callback that may be called if nand_scan_tail() fails
+ *			(optional).
  */
 struct nand_hw_control {
 	spinlock_t lock;
 	struct nand_chip *active;
 	wait_queue_head_t wq;
+	int (*attach_chip)(struct nand_chip *chip);
+	void (*detach_chip)(struct nand_chip *chip);
 };
 
 static inline void nand_hw_control_init(struct nand_hw_control *nfc)
