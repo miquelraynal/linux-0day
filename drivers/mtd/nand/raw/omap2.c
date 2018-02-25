@@ -2263,12 +2263,14 @@ scan_tail:
 
 	err = mtd_device_register(mtd, NULL, 0);
 	if (err)
-		goto return_error;
+		goto cleanup_nand;
 
 	platform_set_drvdata(pdev, mtd);
 
 	return 0;
 
+cleanup_nand:
+	nand_cleanup(nand_chip);
 return_error:
 	if (!IS_ERR_OR_NULL(info->dma))
 		dma_release_channel(info->dma);
@@ -2276,6 +2278,7 @@ return_error:
 		nand_bch_free(nand_chip->ecc.priv);
 		nand_chip->ecc.priv = NULL;
 	}
+
 	return err;
 }
 
