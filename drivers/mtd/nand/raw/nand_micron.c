@@ -77,9 +77,9 @@ static int micron_nand_setup_read_retry(struct mtd_info *mtd, int retry_mode)
 static int micron_nand_onfi_init(struct nand_chip *chip)
 {
 	struct nand_parameters *p = &chip->parameters;
-	struct nand_onfi_vendor_micron *micron = (void *)p->onfi.vendor;
+	struct nand_onfi_vendor_micron *micron = (void *)p->onfi->vendor;
 
-	if (chip->parameters.onfi.version && p->onfi.vendor_revision) {
+	if (p->onfi && p->onfi->vendor_revision) {
 		chip->read_retries = micron->read_retry_options;
 		chip->setup_read_retry = micron_nand_setup_read_retry;
 	}
@@ -283,7 +283,7 @@ static int micron_supports_on_die_ecc(struct nand_chip *chip)
 		if (chip->id.data[1] == micron_on_die_ecc[i])
 			return MICRON_ON_DIE_MANDATORY;
 
-	if (!chip->parameters.onfi.version)
+	if (!chip->parameters.onfi)
 		return MICRON_ON_DIE_UNSUPPORTED;
 
 	if (chip->bits_per_cell != 1)
