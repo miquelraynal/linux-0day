@@ -430,13 +430,38 @@ struct nand_jedec_params {
 } __packed;
 
 /**
+ * struct onfi_params - ONFI specific parameters that will be reused
+ * @tPROG: Page program time
+ * @tBERS: Block erase time
+ * @tR: Page read time
+ * @tCCS: Change column setup time
+ * @async_timing_mode: Supported asynchronous timing mode
+ * @vendor_revision: Vendor specific revision number
+ * @vendor: Vendor specific data
+ */
+struct onfi_params {
+	u16 tPROG;
+	u16 tBERS;
+	u16 tR;
+	u16 tCCS;
+	u16 async_timing_mode;
+	u16 vendor_revision;
+	u8 vendor[88];
+};
+
+/**
  * struct nand_parameters - NAND generic parameters from the parameter page
  * @model: Model name
  * @supports_set_get_features: The NAND chip supports setting/getting features
+ * @onfi: ONFI specific parameters
  */
 struct nand_parameters {
+	/* Generic parameters */
 	char model[100];
 	bool supports_set_get_features;
+
+	/* ONFI parameters */
+	struct onfi_params onfi;
 };
 
 /* The maximum expected count of bytes in the NAND ID sequence */
@@ -1548,26 +1573,13 @@ struct platform_nand_data {
 	struct platform_nand_ctrl ctrl;
 };
 
-/* return the supported features. */
-static inline int onfi_feature(struct nand_chip *chip)
-{
-	return chip->onfi_version ? le16_to_cpu(chip->onfi_params.features) : 0;
-}
-
 /* return the supported asynchronous timing mode. */
 static inline int onfi_get_async_timing_mode(struct nand_chip *chip)
 {
 	if (!chip->onfi_version)
 		return ONFI_TIMING_MODE_UNKNOWN;
-	return le16_to_cpu(chip->onfi_params.async_timing_mode);
-}
 
-/* return the supported synchronous timing mode. */
-static inline int onfi_get_sync_timing_mode(struct nand_chip *chip)
-{
-	if (!chip->onfi_version)
-		return ONFI_TIMING_MODE_UNKNOWN;
-	return le16_to_cpu(chip->onfi_params.src_sync_timing_mode);
+	return chip->parameters.onfi.async_timing_mode;
 }
 
 int onfi_fill_data_interface(struct nand_chip *chip,

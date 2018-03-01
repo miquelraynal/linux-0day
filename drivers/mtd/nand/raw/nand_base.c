@@ -5168,14 +5168,14 @@ static int nand_flash_detect_onfi(struct nand_chip *chip)
 	chip->max_bb_per_die = le16_to_cpu(p->bb_per_lun);
 	chip->blocks_per_die = le32_to_cpu(p->blocks_per_lun);
 
-	if (onfi_feature(chip) & ONFI_FEATURE_16_BIT_BUS)
+	if (le16_to_cpu(p->features) & ONFI_FEATURE_16_BIT_BUS)
 		chip->options |= NAND_BUSWIDTH_16;
 
 	if (p->ecc_bits != 0xff) {
 		chip->ecc_strength_ds = p->ecc_bits;
 		chip->ecc_step_ds = 512;
 	} else if (chip->onfi_version >= 21 &&
-		(onfi_feature(chip) & ONFI_FEATURE_EXT_PARAM_PAGE)) {
+		(le16_to_cpu(p->features) & ONFI_FEATURE_EXT_PARAM_PAGE)) {
 
 		/*
 		 * The nand_flash_detect_ext_param_page() uses the
@@ -5196,6 +5196,16 @@ static int nand_flash_detect_onfi(struct nand_chip *chip)
 	/* Save some parameters from the parameter page for future use */
 	if (le16_to_cpu(p->opt_cmd) & ONFI_OPT_CMD_SET_GET_FEATURES)
 		chip->parameters.supports_set_get_features = true;
+	chip->parameters.onfi.tPROG = le16_to_cpu(p->t_prog);
+	chip->parameters.onfi.tBERS = le16_to_cpu(p->t_bers);
+	chip->parameters.onfi.tR = le16_to_cpu(p->t_r);
+	chip->parameters.onfi.tCCS = le16_to_cpu(p->t_ccs);
+	chip->parameters.onfi.async_timing_mode =
+		le16_to_cpu(p->async_timing_mode);
+	chip->parameters.onfi.vendor_revision =
+		le16_to_cpu(p->vendor_revision);
+	memcpy(chip->parameters.onfi.vendor, p->vendor,
+	       sizeof(p->vendor));
 
 	return 1;
 }
