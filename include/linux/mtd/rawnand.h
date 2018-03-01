@@ -1202,8 +1202,6 @@ int nand_op_parser_exec_op(struct nand_chip *chip,
  *			non 0 if ONFI supported.
  * @jedec_version:	[INTERN] holds the chip JEDEC version (BCD encoded),
  *			non 0 if JEDEC supported.
- * @onfi_params:	[INTERN] holds the ONFI page parameter when ONFI is
- *			supported, 0 otherwise.
  * @parameters:		[INTERN] holds generic parameters under an easily
  *			readable form.
  * @max_bb_per_die:	[INTERN] the max number of bad blocks each die of a
@@ -1286,7 +1284,6 @@ struct nand_chip {
 	struct nand_id id;
 	int onfi_version;
 	int jedec_version;
-	struct nand_onfi_params	onfi_params;
 	struct nand_parameters parameters;
 	u16 max_bb_per_die;
 	u32 blocks_per_die;
