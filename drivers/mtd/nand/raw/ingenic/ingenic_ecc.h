@@ -25,7 +25,6 @@ struct ingenic_ecc_params {
 	int strength;
 };
 
-#if IS_ENABLED(CONFIG_MTD_NAND_INGENIC_ECC)
 int ingenic_ecc_calculate(struct ingenic_ecc *ecc,
 			  struct ingenic_ecc_params *params,
 			  const u8 *buf, u8 *ecc_code);
@@ -35,30 +34,6 @@ int ingenic_ecc_correct(struct ingenic_ecc *ecc,
 
 void ingenic_ecc_release(struct ingenic_ecc *ecc);
 struct ingenic_ecc *of_ingenic_ecc_get(struct device_node *np);
-#else /* CONFIG_MTD_NAND_INGENIC_ECC */
-int ingenic_ecc_calculate(struct ingenic_ecc *ecc,
-			  struct ingenic_ecc_params *params,
-			  const u8 *buf, u8 *ecc_code)
-{
-	return -ENODEV;
-}
-
-int ingenic_ecc_correct(struct ingenic_ecc *ecc,
-			struct ingenic_ecc_params *params, u8 *buf,
-			u8 *ecc_code)
-{
-	return -ENODEV;
-}
-
-void ingenic_ecc_release(struct ingenic_ecc *ecc)
-{
-}
-
-struct ingenic_ecc *of_ingenic_ecc_get(struct device_node *np)
-{
-	return ERR_PTR(-ENODEV);
-}
-#endif /* CONFIG_MTD_NAND_INGENIC_ECC */
 
 struct ingenic_ecc_ops {
 	void (*disable)(struct ingenic_ecc *ecc);

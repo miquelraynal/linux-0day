@@ -14,12 +14,8 @@ config MTD_NAND_JZ4780
 
 if MTD_NAND_JZ4780
 
-config MTD_NAND_INGENIC_ECC
-	tristate
-
 config MTD_NAND_JZ4740_ECC
 	tristate "Hardware BCH support for JZ4740 SoC"
-	select MTD_NAND_INGENIC_ECC
 	help
 	  Enable this driver to support the Reed-Solomon error-correction
 	  hardware present on the JZ4740 SoC from Ingenic.
@@ -29,7 +25,6 @@ config MTD_NAND_JZ4740_ECC
 
 config MTD_NAND_JZ4725B_BCH
 	tristate "Hardware BCH support for JZ4725B SoC"
-	select MTD_NAND_INGENIC_ECC
 	help
 	  Enable this driver to support the BCH error-correction hardware
 	  present on the JZ4725B SoC from Ingenic.
@@ -39,7 +34,6 @@ config MTD_NAND_JZ4725B_BCH
 
 config MTD_NAND_JZ4780_BCH
 	tristate "Hardware BCH support for JZ4780 SoC"
-	select MTD_NAND_INGENIC_ECC
 	help
 	  Enable this driver to support the BCH error-correction hardware
 	  present on the JZ4780 SoC from Ingenic.
