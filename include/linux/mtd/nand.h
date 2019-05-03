@@ -129,12 +129,18 @@ struct nand_page_io_req {
 
 /**
  * struct nand_ecc_props - NAND ECC properties
+ * @provider: ECC engine provider type
+ * @algo: ECC algorithm (if relevant)
  * @strength: ECC strength
  * @step_size: Number of bytes per step
+ * @flags: Misc properties
  */
 struct nand_ecc_props {
+	unsigned int provider;
+	unsigned int algo;
 	unsigned int strength;
 	unsigned int step_size;
+	unsigned int flags;
 };
 
 #define NAND_ECCREQ(str, stp) { .strength = (str), .step_size = (stp) }
