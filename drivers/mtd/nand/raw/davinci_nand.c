@@ -220,7 +220,7 @@ static int nand_davinci_correct_1bit(struct nand_chip *chip, u_char *dat,
 /*
  * 4-bit hardware ECC ... context maintained over entire AEMIF
  *
- * This is a syndrome engine, but we avoid NAND_ECC_HW_SYNDROME
+ * This is a syndrome engine, but we avoid NAND_ECC_SYNDROME_OOB_PLACEMENT
  * since that forces use of a problematic "infix OOB" layout.
  * Among other things, it trashes manufacturer bad block markers.
  * Also, and specific to this hardware, it ECC-protects the "prepad"
@@ -685,7 +685,8 @@ static int davinci_nand_attach_chip(struct nand_chip *chip)
 			mtd_set_ooblayout(mtd, &hwecc4_small_ooblayout_ops);
 		} else if (chunks == 4 || chunks == 8) {
 			mtd_set_ooblayout(mtd, &nand_ooblayout_lp_ops);
-			info->chip.ecc.mode = NAND_ECC_HW_OOB_FIRST;
+			info->chip.ecc.mode = NAND_ECC_HW;
+			info->chip.ecc.placement = NAND_ECC_OOB_FIRST_PLACEMENT;
 		} else {
 			return -EIO;
 		}
@@ -790,6 +791,7 @@ static int nand_davinci_probe(struct platform_device *pdev)
 
 	/* Use board-specific ECC config */
 	info->chip.ecc.mode	= pdata->ecc_mode;
+	info->chip.ecc.placement = pdata->oob_placement;
 
 	spin_lock_irq(&davinci_nand_lock);
 
@@ -832,7 +834,7 @@ static int nand_davinci_remove(struct platform_device *pdev)
 	struct davinci_nand_info *info = platform_get_drvdata(pdev);
 
 	spin_lock_irq(&davinci_nand_lock);
-	if (info->chip.ecc.mode == NAND_ECC_HW_SYNDROME)
+	if (info->chip.ecc.placement == NAND_ECC_SYNDROME_OOB_PLACEMENT)
 		ecc4_busy = false;
 	spin_unlock_irq(&davinci_nand_lock);
 
