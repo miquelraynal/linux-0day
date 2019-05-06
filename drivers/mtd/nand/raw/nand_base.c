@@ -4851,6 +4851,13 @@ static const char * const nand_ecc_modes[] = {
 	[NAND_ECC_ON_DIE]	= "on-die",
 };
 
+static const char * const nand_ecc_engine_providers[] = {
+	[NAND_NO_ECC_ENGINE] = "none",
+	[NAND_SOFT_ECC_ENGINE] = "soft",
+	[NAND_HW_ECC_ENGINE] = "hw",
+	[NAND_ON_DIE_ECC_ENGINE] = "on-die",
+};
+
 static const char * const nand_ecc_engine_oob_placement[] = {
 	[NAND_ECC_SYNDROME_OOB_PLACEMENT] = "hw_syndrome",
 	[NAND_ECC_OOB_FIRST_PLACEMENT] = "hw_oob_first",

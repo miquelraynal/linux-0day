@@ -97,6 +97,22 @@ enum nand_ecc_mode {
 };
 
 /**
+ * enum nand_ecc_engine_type - NAND ECC engine type/provider
+ * @NAND_INVALID_ECC_ENGINE: Invalid value
+ * @NAND_NO_ECC_ENGINE: No ECC correction
+ * @NAND_SOFT_ECC_ENGINE: Software ECC correction
+ * @NAND_HW_ECC_ENGINE: Hardware (controller side) ECC correction
+ * @NAND_ON_DIE_ECC_ENGINE: Hardware (chip side) ECC correction
+ */
+enum nand_ecc_engine_type {
+	NAND_INVALID_ECC_ENGINE,
+	NAND_NO_ECC_ENGINE,
+	NAND_SOFT_ECC_ENGINE,
+	NAND_HW_ECC_ENGINE,
+	NAND_ON_DIE_ECC_ENGINE,
+};
+
+/**
  * enum nand_ecc_engine_oob_placement - NAND ECC engine OOB placement
  * @NAND_ECC_DEFAULT_OOB_PLACEMENT: Standard layout, or not specified
  * @NAND_ECC_SYNDROME_OOB_PLACEMENT: Syndrome layout (interlaced)
