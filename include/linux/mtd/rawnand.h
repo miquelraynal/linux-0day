@@ -96,6 +96,18 @@ enum nand_ecc_mode {
 	NAND_ECC_ON_DIE,
 };
 
+/**
+ * enum nand_ecc_engine_oob_placement - NAND ECC engine OOB placement
+ * @NAND_ECC_DEFAULT_OOB_PLACEMENT: Standard layout, or not specified
+ * @NAND_ECC_SYNDROME_OOB_PLACEMENT: Syndrome layout (interlaced)
+ * @NAND_ECC_OOB_FIRST_PLACEMENT: Free OOB bytes first
+ */
+enum nand_ecc_engine_oob_placement {
+	NAND_ECC_DEFAULT_OOB_PLACEMENT,
+	NAND_ECC_SYNDROME_OOB_PLACEMENT,
+	NAND_ECC_OOB_FIRST_PLACEMENT,
+};
+
 enum nand_ecc_algo {
 	NAND_ECC_UNKNOWN,
 	NAND_ECC_HAMMING,

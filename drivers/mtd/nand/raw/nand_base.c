@@ -4851,6 +4851,11 @@ static const char * const nand_ecc_modes[] = {
 	[NAND_ECC_ON_DIE]	= "on-die",
 };
 
+static const char * const nand_ecc_engine_oob_placement[] = {
+	[NAND_ECC_SYNDROME_OOB_PLACEMENT] = "hw_syndrome",
+	[NAND_ECC_OOB_FIRST_PLACEMENT] = "hw_oob_first",
+};
+
 static int of_get_nand_ecc_mode(struct device_node *np)
 {
 	const char *pm;
