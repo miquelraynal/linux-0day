@@ -70,7 +70,7 @@ static int plat_nand_probe(struct platform_device *pdev)
 	data->chip.options |= pdata->chip.options;
 	data->chip.bbt_options |= pdata->chip.bbt_options;
 
-	data->chip.ecc.mode = NAND_ECC_SOFT;
+	data->chip.ecc.mode = NAND_SOFT_ECC_ENGINE;
 	data->chip.ecc.algo = NAND_ECC_HAMMING;
 
 	platform_set_drvdata(pdev, data);

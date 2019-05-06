@@ -2247,7 +2247,7 @@ static int marvell_nand_ecc_init(struct mtd_info *mtd,
 	struct marvell_nfc *nfc = to_marvell_nfc(chip->controller);
 	int ret;
 
-	if (ecc->mode != NAND_ECC_NONE && (!ecc->size || !ecc->strength)) {
+	if (ecc->mode != NAND_NO_ECC_ENGINE && (!ecc->size || !ecc->strength)) {
 		if (chip->base.eccreq.step_size && chip->base.eccreq.strength) {
 			ecc->size = chip->base.eccreq.step_size;
 			ecc->strength = chip->base.eccreq.strength;
@@ -2260,14 +2260,14 @@ static int marvell_nand_ecc_init(struct mtd_info *mtd,
 	}
 
 	switch (ecc->mode) {
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 		ret = marvell_nand_hw_ecc_ctrl_init(mtd, ecc);
 		if (ret)
 			return ret;
 		break;
-	case NAND_ECC_NONE:
-	case NAND_ECC_SOFT:
-	case NAND_ECC_ON_DIE:
+	case NAND_NO_ECC_ENGINE:
+	case NAND_SOFT_ECC_ENGINE:
+	case NAND_ON_DIE_ECC_ENGINE:
 		if (!nfc->caps->is_nfcv2 && mtd->writesize != SZ_512 &&
 		    mtd->writesize != SZ_2K) {
 			dev_err(nfc->dev, "NFCv1 cannot write %d bytes pages\n",
@@ -2465,7 +2465,7 @@ static int marvell_nand_attach_chip(struct nand_chip *chip)
 		return ret;
 	}
 
-	if (chip->ecc.mode == NAND_ECC_HW) {
+	if (chip->ecc.mode == NAND_HW_ECC_ENGINE) {
 		/*
 		 * Subpage write not available with hardware ECC, prohibit also
 		 * subpage read as in userspace subpage access would still be
@@ -2640,7 +2640,7 @@ static int marvell_nand_chip_init(struct device *dev, struct marvell_nfc *nfc,
 	 * Default to HW ECC engine mode. If the nand-ecc-mode property is given
 	 * in the DT node, this entry will be overwritten in nand_scan_ident().
 	 */
-	chip->ecc.mode = NAND_ECC_HW;
+	chip->ecc.mode = NAND_HW_ECC_ENGINE;
 
 	/*
 	 * Save a reference value for timing registers before

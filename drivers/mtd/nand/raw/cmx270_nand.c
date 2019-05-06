@@ -180,7 +180,7 @@ static int __init cmx270_init(void)
 
 	/* 15 us command delay time */
 	this->legacy.chip_delay = 20;
-	this->ecc.mode = NAND_ECC_SOFT;
+	this->ecc.mode = NAND_SOFT_ECC_ENGINE;
 	this->ecc.algo = NAND_ECC_HAMMING;
 
 	/* read/write functions */

@@ -4844,7 +4844,7 @@ free_detect_allocation:
 
 static const char * const nand_ecc_modes[] = {
 	[NAND_ECC_NONE]		= "none",
-	[NAND_ECC_SOFT]		= "soft",
+	[NAND_SOFT_ECC_ENGINE]		= "soft",
 	[NAND_ECC_HW]		= "hw",
 	[NAND_ECC_HW_SYNDROME]	= "hw_syndrome",
 	[NAND_ECC_HW_OOB_FIRST]	= "hw_oob_first",
@@ -4872,19 +4872,42 @@ static int of_get_nand_ecc_mode(struct device_node *np)
 	if (err < 0)
 		return err;
 
-	for (i = NAND_ECC_NONE; i < ARRAY_SIZE(nand_ecc_modes); i++)
-		if (!strcasecmp(pm, nand_ecc_modes[i]))
+	for (i = NAND_NO_ECC_ENGINE;
+	     i < ARRAY_SIZE(nand_ecc_engine_providers); i++)
+		if (!strcasecmp(pm, nand_ecc_engine_providers[i]))
 			return i;
+
+	for (i = NAND_ECC_SYNDROME_OOB_PLACEMENT;
+	     i < ARRAY_SIZE(nand_ecc_engine_oob_placement); i++)
+		if (!strcasecmp(pm, nand_ecc_engine_oob_placement[i]))
+			return NAND_HW_ECC_ENGINE;
 
 	/*
 	 * For backward compatibility we support few obsoleted values that don't
-	 * have their mappings into the nand_ecc_mode enum anymore (they were
-	 * merged with other enums).
+	 * have their mappings into the nand_ecc_engine_providers enum anymore
+	 * (they were merged with other enums).
 	 */
 	if (!strcasecmp(pm, "soft_bch"))
-		return NAND_ECC_SOFT;
+		return NAND_SOFT_ECC_ENGINE;
 
 	return -ENODEV;
+}
+
+static int of_get_nand_ecc_oob_placement(struct device_node *np)
+{
+	const char *pm;
+	int err, i;
+
+	err = of_property_read_string(np, "nand-ecc-mode", &pm);
+	if (err < 0)
+		return err;
+
+	for (i = NAND_ECC_SYNDROME_OOB_PLACEMENT;
+	     i < ARRAY_SIZE(nand_ecc_engine_oob_placement); i++)
+		if (!strcasecmp(pm, nand_ecc_engine_providers[i]))
+			return i;
+
+	return NAND_ECC_DEFAULT_OOB_PLACEMENT;
 }
 
 static const char * const nand_ecc_algos[] = {
@@ -4964,7 +4987,7 @@ static bool of_get_nand_on_flash_bbt(struct device_node *np)
 static int nand_dt_init(struct nand_chip *chip)
 {
 	struct device_node *dn = nand_get_flash_node(chip);
-	int ecc_mode, ecc_algo, ecc_strength, ecc_step;
+	int ecc_mode, ecc_oob_placement, ecc_algo, ecc_strength, ecc_step;
 
 	if (!dn)
 		return 0;
@@ -4979,12 +5002,16 @@ static int nand_dt_init(struct nand_chip *chip)
 		chip->bbt_options |= NAND_BBT_USE_FLASH;
 
 	ecc_mode = of_get_nand_ecc_mode(dn);
+	ecc_oob_placement = of_get_nand_ecc_oob_placement(dn);
 	ecc_algo = of_get_nand_ecc_algo(dn);
 	ecc_strength = of_get_nand_ecc_strength(dn);
 	ecc_step = of_get_nand_ecc_step_size(dn);
 
 	if (ecc_mode >= 0)
 		chip->ecc.mode = ecc_mode;
+
+	if (ecc_oob_placement >= 0)
+		chip->ecc.placement = ecc_oob_placement;
 
 	if (ecc_algo >= 0)
 		chip->ecc.algo = ecc_algo;
@@ -5104,7 +5131,7 @@ static int nand_set_ecc_soft_ops(struct nand_chip *chip)
 	struct mtd_info *mtd = nand_to_mtd(chip);
 	struct nand_ecc_ctrl *ecc = &chip->ecc;
 
-	if (WARN_ON(ecc->mode != NAND_ECC_SOFT))
+	if (WARN_ON(ecc->mode != NAND_SOFT_ECC_ENGINE))
 		return -EINVAL;
 
 	switch (ecc->algo) {
@@ -5565,7 +5592,7 @@ static int nand_scan_tail(struct nand_chip *chip)
 	 * If no default placement scheme is given, select an appropriate one.
 	 */
 	if (!mtd->ooblayout &&
-	    !(ecc->mode == NAND_ECC_SOFT && ecc->algo == NAND_ECC_BCH)) {
+	    !(ecc->mode == NAND_SOFT_ECC_ENGINE && ecc->algo == NAND_ECC_BCH)) {
 		switch (mtd->oobsize) {
 		case 8:
 		case 16:
@@ -5583,7 +5610,7 @@ static int nand_scan_tail(struct nand_chip *chip)
 			 * page with ECC layout when ->oobsize <= 128 for
 			 * compatibility reasons.
 			 */
-			if (ecc->mode == NAND_ECC_NONE) {
+			if (ecc->mode == NAND_NO_ECC_ENGINE) {
 				mtd_set_ooblayout(mtd,
 						&nand_ooblayout_lp_ops);
 				break;
@@ -5602,12 +5629,12 @@ static int nand_scan_tail(struct nand_chip *chip)
 	 */
 
 	switch (ecc->mode) {
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 
 		switch (ecc->placement) {
 		case NAND_ECC_OOB_FIRST_PLACEMENT:
 			/*
-			 * Similar to NAND_ECC_HW, but a separate read_page handle */
+			 * Similar to NAND_HW_ECC_ENGINE, but a separate read_page handle */
 			if (!ecc->calculate || !ecc->correct || !ecc->hwctl) {
 				WARN(1, "No ECC functions supplied; hardware ECC not possible\n");
 				ret = -EINVAL;
@@ -5671,12 +5698,12 @@ static int nand_scan_tail(struct nand_chip *chip)
 			}
 			pr_warn("%d byte HW ECC not possible on %d byte page size, fallback to SW ECC\n",
 				ecc->size, mtd->writesize);
-			ecc->mode = NAND_ECC_SOFT;
+			ecc->mode = NAND_SOFT_ECC_ENGINE;
 			ecc->algo = NAND_ECC_HAMMING;
 		}
 		/* fall through */
 
-	case NAND_ECC_SOFT:
+	case NAND_SOFT_ECC_ENGINE:
 		ret = nand_set_ecc_soft_ops(chip);
 		if (ret) {
 			ret = -EINVAL;
@@ -5684,7 +5711,7 @@ static int nand_scan_tail(struct nand_chip *chip)
 		}
 		break;
 
-	case NAND_ECC_ON_DIE:
+	case NAND_ON_DIE_ECC_ENGINE:
 		if (!ecc->read_page || !ecc->write_page) {
 			WARN(1, "No ECC functions supplied; on-die ECC not possible\n");
 			ret = -EINVAL;
@@ -5696,8 +5723,8 @@ static int nand_scan_tail(struct nand_chip *chip)
 			ecc->write_oob = nand_write_oob_std;
 		break;
 
-	case NAND_ECC_NONE:
-		pr_warn("NAND_ECC_NONE selected by board driver. This is not recommended!\n");
+	case NAND_NO_ECC_ENGINE:
+		pr_warn("NAND_NO_ECC_ENGINE selected by board driver. This is not recommended!\n");
 		ecc->read_page = nand_read_page_raw;
 		ecc->write_page = nand_write_page_raw;
 		ecc->read_oob = nand_read_oob_std;
@@ -5786,7 +5813,7 @@ static int nand_scan_tail(struct nand_chip *chip)
 
 	/* Large page NAND with SOFT_ECC should support subpage reads */
 	switch (ecc->mode) {
-	case NAND_ECC_SOFT:
+	case NAND_SOFT_ECC_ENGINE:
 		if (chip->page_shift > 9)
 			chip->options |= NAND_SUBPAGE_READ;
 		break;
@@ -5928,7 +5955,7 @@ EXPORT_SYMBOL(nand_scan_with_ids);
  */
 void nand_cleanup(struct nand_chip *chip)
 {
-	if (chip->ecc.mode == NAND_ECC_SOFT &&
+	if (chip->ecc.mode == NAND_SOFT_ECC_ENGINE &&
 	    chip->ecc.algo == NAND_ECC_BCH)
 		nand_bch_free((struct nand_bch_control *)chip->ecc.priv);
 

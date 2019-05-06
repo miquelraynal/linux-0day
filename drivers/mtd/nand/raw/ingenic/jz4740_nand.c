@@ -422,7 +422,7 @@ static int jz_nand_probe(struct platform_device *pdev)
 	chip->ecc.hwctl		= jz_nand_hwctl;
 	chip->ecc.calculate	= jz_nand_calculate_ecc_rs;
 	chip->ecc.correct	= jz_nand_correct_ecc_rs;
-	chip->ecc.mode		= NAND_ECC_HW;
+	chip->ecc.mode		= NAND_HW_ECC_ENGINE;
 	chip->ecc.placement	= NAND_ECC_OOB_FIRST_PLACEMENT;
 	chip->ecc.size		= 512;
 	chip->ecc.bytes		= 9;

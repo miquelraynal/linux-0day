@@ -1189,7 +1189,7 @@ static int mtk_nfc_ecc_init(struct device *dev, struct mtd_info *mtd)
 	int free, ret;
 
 	/* support only ecc hw mode */
-	if (nand->ecc.mode != NAND_ECC_HW) {
+	if (nand->ecc.mode != NAND_HW_ECC_ENGINE) {
 		dev_err(dev, "ecc.mode not supported\n");
 		return -EINVAL;
 	}
@@ -1342,7 +1342,7 @@ static int mtk_nfc_nand_chip_init(struct device *dev, struct mtk_nfc *nfc,
 	nand->legacy.cmd_ctrl = mtk_nfc_cmd_ctrl;
 
 	/* set default mode in case dt entry is missing */
-	nand->ecc.mode = NAND_ECC_HW;
+	nand->ecc.mode = NAND_HW_ECC_ENGINE;
 
 	nand->ecc.write_subpage = mtk_nfc_write_subpage_hwecc;
 	nand->ecc.write_page_raw = mtk_nfc_write_page_raw;

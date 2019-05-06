@@ -322,7 +322,7 @@ static void fsl_ifc_cmdfunc(struct nand_chip *chip, unsigned int command,
 		ifc_nand_ctrl->read_bytes = mtd->writesize + mtd->oobsize;
 		ifc_nand_ctrl->index += column;
 
-		if (chip->ecc.mode == NAND_ECC_HW)
+		if (chip->ecc.mode == NAND_HW_ECC_ENGINE)
 			ifc_nand_ctrl->eccread = 1;
 
 		fsl_ifc_do_read(chip, 0, mtd);
@@ -925,7 +925,7 @@ static int fsl_ifc_chip_init(struct fsl_ifc_mtd *priv)
 
 	/* Must also set CSOR_NAND_ECC_ENC_EN if DEC_EN set */
 	if (csor & CSOR_NAND_ECC_DEC_EN) {
-		chip->ecc.mode = NAND_ECC_HW;
+		chip->ecc.mode = NAND_HW_ECC_ENGINE;
 		mtd_set_ooblayout(mtd, &fsl_ifc_ooblayout_ops);
 
 		/* Hardware generates ECC per 512 Bytes */
@@ -938,7 +938,7 @@ static int fsl_ifc_chip_init(struct fsl_ifc_mtd *priv)
 			chip->ecc.strength = 8;
 		}
 	} else {
-		chip->ecc.mode = NAND_ECC_SOFT;
+		chip->ecc.mode = NAND_SOFT_ECC_ENGINE;
 		chip->ecc.algo = NAND_ECC_HAMMING;
 	}
 

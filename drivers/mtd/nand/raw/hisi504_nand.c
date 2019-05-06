@@ -195,7 +195,7 @@ static void hisi_nfc_dma_transfer(struct hinfc_host *host, int todev)
 	hinfc_write(host, host->dma_buffer, HINFC504_DMA_ADDR_DATA);
 	hinfc_write(host, host->dma_oob, HINFC504_DMA_ADDR_OOB);
 
-	if (chip->ecc.mode == NAND_ECC_NONE) {
+	if (chip->ecc.mode == NAND_NO_ECC_ENGINE) {
 		hinfc_write(host, ((mtd->oobsize & HINFC504_DMA_LEN_OOB_MASK)
 			<< HINFC504_DMA_LEN_OOB_SHIFT), HINFC504_DMA_LEN);
 
@@ -477,7 +477,7 @@ static void hisi_nfc_cmdfunc(struct nand_chip *chip, unsigned command,
 
 	case NAND_CMD_STATUS:
 		flag = hinfc_read(host, HINFC504_CON);
-		if (chip->ecc.mode == NAND_ECC_HW)
+		if (chip->ecc.mode == NAND_HW_ECC_ENGINE)
 			hinfc_write(host,
 				    flag & ~(HINFC504_CON_ECCTYPE_MASK <<
 				    HINFC504_CON_ECCTYPE_SHIFT), HINFC504_CON);
@@ -730,7 +730,7 @@ static int hisi_nfc_attach_chip(struct nand_chip *chip)
 	}
 	hinfc_write(host, flag, HINFC504_CON);
 
-	if (chip->ecc.mode == NAND_ECC_HW)
+	if (chip->ecc.mode == NAND_HW_ECC_ENGINE)
 		hisi_nfc_ecc_probe(host);
 
 	return 0;

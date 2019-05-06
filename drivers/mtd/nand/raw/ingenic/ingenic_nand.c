@@ -244,7 +244,7 @@ static int ingenic_nand_attach_chip(struct nand_chip *chip)
 	}
 
 	switch (chip->ecc.mode) {
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 		if (!nfc->ecc) {
 			dev_err(nfc->dev, "HW ECC selected, but ECC controller not found\n");
 			return -ENODEV;
@@ -254,12 +254,12 @@ static int ingenic_nand_attach_chip(struct nand_chip *chip)
 		chip->ecc.calculate = ingenic_nand_ecc_calculate;
 		chip->ecc.correct = ingenic_nand_ecc_correct;
 		/* fall through */
-	case NAND_ECC_SOFT:
+	case NAND_SOFT_ECC_ENGINE:
 		dev_info(nfc->dev, "using %s (strength %d, size %d, bytes %d)\n",
 			 (nfc->ecc) ? "hardware ECC" : "software ECC",
 			 chip->ecc.strength, chip->ecc.size, chip->ecc.bytes);
 		break;
-	case NAND_ECC_NONE:
+	case NAND_NO_ECC_ENGINE:
 		dev_info(nfc->dev, "not using ECC\n");
 		break;
 	default:
@@ -269,7 +269,7 @@ static int ingenic_nand_attach_chip(struct nand_chip *chip)
 	}
 
 	/* The NAND core will generate the ECC layout for SW ECC */
-	if (chip->ecc.mode != NAND_ECC_HW)
+	if (chip->ecc.mode != NAND_HW_ECC_ENGINE)
 		return 0;
 
 	/* Generate ECC layout. ECC codes are right aligned in the OOB area. */
@@ -367,7 +367,7 @@ static int ingenic_nand_init_chip(struct platform_device *pdev,
 	chip->options = NAND_NO_SUBPAGE_WRITE;
 	chip->legacy.select_chip = ingenic_nand_select_chip;
 	chip->legacy.cmd_ctrl = ingenic_nand_cmd_ctrl;
-	chip->ecc.mode = NAND_ECC_HW;
+	chip->ecc.mode = NAND_HW_ECC_ENGINE;
 	chip->controller = &nfc->controller;
 	nand_set_flash_node(chip, np);
 

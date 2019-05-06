@@ -154,7 +154,7 @@ static int ndfc_chip_init(struct ndfc_controller *ndfc,
 	chip->ecc.correct = nand_correct_data;
 	chip->ecc.hwctl = ndfc_enable_hwecc;
 	chip->ecc.calculate = ndfc_calculate_ecc;
-	chip->ecc.mode = NAND_ECC_HW;
+	chip->ecc.mode = NAND_HW_ECC_ENGINE;
 	chip->ecc.size = 256;
 	chip->ecc.bytes = 3;
 	chip->ecc.strength = 1;

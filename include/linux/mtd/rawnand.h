@@ -384,7 +384,7 @@ static const struct nand_ecc_caps __name = {			\
  * @write_oob:	function to write chip OOB data
  */
 struct nand_ecc_ctrl {
-	enum nand_ecc_mode mode;
+	enum nand_ecc_engine_type mode;
 	enum nand_ecc_engine_oob_placement placement;
 	enum nand_ecc_algo algo;
 	int steps;

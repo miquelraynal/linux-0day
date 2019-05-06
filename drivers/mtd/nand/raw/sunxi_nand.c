@@ -1590,7 +1590,7 @@ static int sunxi_nand_ooblayout_free(struct mtd_info *mtd, int section,
 	 * only have 2 bytes available in the first user data
 	 * section.
 	 */
-	if (!section && ecc->mode == NAND_ECC_HW) {
+	if (!section && ecc->mode == NAND_HW_ECC_ENGINE) {
 		oobregion->offset = 2;
 		oobregion->length = 2;
 
@@ -1736,10 +1736,10 @@ err:
 static void sunxi_nand_ecc_cleanup(struct nand_ecc_ctrl *ecc)
 {
 	switch (ecc->mode) {
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 		sunxi_nand_hw_ecc_ctrl_cleanup(ecc);
 		break;
-	case NAND_ECC_NONE:
+	case NAND_NO_ECC_ENGINE:
 	default:
 		break;
 	}
@@ -1768,13 +1768,13 @@ static int sunxi_nand_attach_chip(struct nand_chip *nand)
 		return -EINVAL;
 
 	switch (ecc->mode) {
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 		ret = sunxi_nand_hw_ecc_ctrl_init(nand, ecc, np);
 		if (ret)
 			return ret;
 		break;
-	case NAND_ECC_NONE:
-	case NAND_ECC_SOFT:
+	case NAND_NO_ECC_ENGINE:
+	case NAND_SOFT_ECC_ENGINE:
 		break;
 	default:
 		return -EINVAL;
@@ -2005,7 +2005,7 @@ static int sunxi_nand_chip_init(struct device *dev, struct sunxi_nfc *nfc,
 	 * Set the ECC mode to the default value in case nothing is specified
 	 * in the DT.
 	 */
-	nand->ecc.mode = NAND_ECC_HW;
+	nand->ecc.mode = NAND_HW_ECC_ENGINE;
 	nand_set_flash_node(nand, np);
 
 	mtd = nand_to_mtd(nand);

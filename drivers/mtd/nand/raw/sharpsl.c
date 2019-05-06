@@ -161,7 +161,7 @@ static int sharpsl_nand_probe(struct platform_device *pdev)
 	/* 15 us command delay time */
 	this->legacy.chip_delay = 15;
 	/* set eccmode using hardware ECC */
-	this->ecc.mode = NAND_ECC_HW;
+	this->ecc.mode = NAND_HW_ECC_ENGINE;
 	this->ecc.size = 256;
 	this->ecc.bytes = 3;
 	this->ecc.strength = 1;

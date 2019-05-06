@@ -262,7 +262,7 @@ static int nuc900_nand_probe(struct platform_device *pdev)
 	chip->legacy.read_buf	= nuc900_nand_read_buf;
 	chip->legacy.chip_delay	= 50;
 	chip->options		= 0;
-	chip->ecc.mode		= NAND_ECC_SOFT;
+	chip->ecc.mode		= NAND_SOFT_ECC_ENGINE;
 	chip->ecc.algo		= NAND_ECC_HAMMING;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);

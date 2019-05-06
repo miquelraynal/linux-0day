@@ -2122,7 +2122,7 @@ static int brcmnand_setup_dev(struct brcmnand_host *host)
 	cfg->col_adr_bytes = 2;
 	cfg->blk_adr_bytes = get_blk_adr_bytes(mtd->size, mtd->writesize);
 
-	if (chip->ecc.mode != NAND_ECC_HW) {
+	if (chip->ecc.mode != NAND_HW_ECC_ENGINE) {
 		dev_err(ctrl->dev, "only HW ECC supported; selected: %d\n",
 			chip->ecc.mode);
 		return -EINVAL;
@@ -2274,7 +2274,7 @@ static int brcmnand_init_cs(struct brcmnand_host *host, struct device_node *dn)
 	chip->legacy.read_buf = brcmnand_read_buf;
 	chip->legacy.write_buf = brcmnand_write_buf;
 
-	chip->ecc.mode = NAND_ECC_HW;
+	chip->ecc.mode = NAND_HW_ECC_ENGINE;
 	chip->ecc.read_page = brcmnand_read_page;
 	chip->ecc.write_page = brcmnand_write_page;
 	chip->ecc.read_page_raw = brcmnand_read_page_raw;

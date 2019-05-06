@@ -555,11 +555,11 @@ static struct davinci_nand_pdata
 		if (!of_property_read_string(pdev->dev.of_node,
 			"ti,davinci-ecc-mode", &mode)) {
 			if (!strncmp("none", mode, 4))
-				pdata->ecc_mode = NAND_ECC_NONE;
+				pdata->ecc_mode = NAND_NO_ECC_ENGINE;
 			if (!strncmp("soft", mode, 4))
-				pdata->ecc_mode = NAND_ECC_SOFT;
+				pdata->ecc_mode = NAND_SOFT_ECC_ENGINE;
 			if (!strncmp("hw", mode, 2))
-				pdata->ecc_mode = NAND_ECC_HW;
+				pdata->ecc_mode = NAND_HW_ECC_ENGINE;
 		}
 		if (!of_property_read_u32(pdev->dev.of_node,
 			"ti,davinci-ecc-bits", &prop))
@@ -611,20 +611,20 @@ static int davinci_nand_attach_chip(struct nand_chip *chip)
 		return PTR_ERR(pdata);
 
 	switch (info->chip.ecc.mode) {
-	case NAND_ECC_NONE:
+	case NAND_NO_ECC_ENGINE:
 		pdata->ecc_bits = 0;
 		break;
-	case NAND_ECC_SOFT:
+	case NAND_SOFT_ECC_ENGINE:
 		pdata->ecc_bits = 0;
 		/*
 		 * This driver expects Hamming based ECC when ecc_mode is set
-		 * to NAND_ECC_SOFT. Force ecc.algo to NAND_ECC_HAMMING to
+		 * to NAND_SOFT_ECC_ENGINE. Force ecc.algo to NAND_ECC_HAMMING to
 		 * avoid adding an extra ->ecc_algo field to
 		 * davinci_nand_pdata.
 		 */
 		info->chip.ecc.algo = NAND_ECC_HAMMING;
 		break;
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 		if (pdata->ecc_bits == 4) {
 			/*
 			 * No sanity checks:  CPUs must support this,
@@ -685,7 +685,7 @@ static int davinci_nand_attach_chip(struct nand_chip *chip)
 			mtd_set_ooblayout(mtd, &hwecc4_small_ooblayout_ops);
 		} else if (chunks == 4 || chunks == 8) {
 			mtd_set_ooblayout(mtd, &nand_ooblayout_lp_ops);
-			info->chip.ecc.mode = NAND_ECC_HW;
+			info->chip.ecc.mode = NAND_HW_ECC_ENGINE;
 			info->chip.ecc.placement = NAND_ECC_OOB_FIRST_PLACEMENT;
 		} else {
 			return -EIO;

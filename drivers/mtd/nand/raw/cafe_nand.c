@@ -633,7 +633,7 @@ static int cafe_nand_attach_chip(struct nand_chip *chip)
 		goto out_free_dma;
 	}
 
-	cafe->nand.ecc.mode = NAND_ECC_HW;
+	cafe->nand.ecc.mode = NAND_HW_ECC_ENGINE;
 	cafe->nand.ecc.placement = NAND_ECC_SYNDROME_OOB_PLACEMENT;
 	cafe->nand.ecc.size = mtd->writesize;
 	cafe->nand.ecc.bytes = 14;

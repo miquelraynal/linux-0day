@@ -943,14 +943,14 @@ static int s3c2410_nand_attach_chip(struct nand_chip *chip)
 
 	switch (chip->ecc.mode) {
 
-	case NAND_ECC_NONE:
+	case NAND_NO_ECC_ENGINE:
 		dev_info(info->device, "ECC disabled\n");
 		break;
 
-	case NAND_ECC_SOFT:
+	case NAND_SOFT_ECC_ENGINE:
 		/*
 		 * This driver expects Hamming based ECC when ecc_mode is set
-		 * to NAND_ECC_SOFT. Force ecc.algo to NAND_ECC_HAMMING to
+		 * to NAND_SOFT_ECC_ENGINE. Force ecc.algo to NAND_ECC_HAMMING to
 		 * avoid adding an extra ecc_algo field to
 		 * s3c2410_platform_nand.
 		 */
@@ -958,7 +958,7 @@ static int s3c2410_nand_attach_chip(struct nand_chip *chip)
 		dev_info(info->device, "soft ECC\n");
 		break;
 
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 		chip->ecc.calculate = s3c2410_nand_calculate_ecc;
 		chip->ecc.correct   = s3c2410_nand_correct_data;
 		chip->ecc.strength  = 1;

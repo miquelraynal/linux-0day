@@ -912,7 +912,7 @@ static int fsmc_nand_attach_chip(struct nand_chip *nand)
 	}
 
 	switch (nand->ecc.mode) {
-	case NAND_ECC_HW:
+	case NAND_HW_ECC_ENGINE:
 		dev_info(host->dev, "Using 1-bit HW ECC scheme\n");
 		nand->ecc.calculate = fsmc_read_hwecc_ecc1;
 		nand->ecc.correct = nand_correct_data;
@@ -921,14 +921,14 @@ static int fsmc_nand_attach_chip(struct nand_chip *nand)
 		nand->ecc.options |= NAND_ECC_SOFT_HAMMING_SM_ORDER;
 		break;
 
-	case NAND_ECC_SOFT:
+	case NAND_SOFT_ECC_ENGINE:
 		if (nand->ecc.algo == NAND_ECC_BCH) {
 			dev_info(host->dev,
 				 "Using 4-bit SW BCH ECC scheme\n");
 			break;
 		}
 
-	case NAND_ECC_ON_DIE:
+	case NAND_ON_DIE_ECC_ENGINE:
 		break;
 
 	default:
@@ -940,7 +940,7 @@ static int fsmc_nand_attach_chip(struct nand_chip *nand)
 	 * Don't set layout for BCH4 SW ECC. This will be
 	 * generated later in nand_bch_init() later.
 	 */
-	if (nand->ecc.mode == NAND_ECC_HW) {
+	if (nand->ecc.mode == NAND_HW_ECC_ENGINE) {
 		switch (mtd->oobsize) {
 		case 16:
 		case 64:
@@ -1070,7 +1070,7 @@ static int __init fsmc_nand_probe(struct platform_device *pdev)
 	 * Setup default ECC mode. nand_dt_init() called from nand_scan_ident()
 	 * can overwrite this value if the DT provides a different value.
 	 */
-	nand->ecc.mode = NAND_ECC_HW;
+	nand->ecc.mode = NAND_HW_ECC_ENGINE;
 	nand->ecc.hwctl = fsmc_enable_hwecc;
 	nand->ecc.size = 512;
 	nand->badblockbits = 7;
