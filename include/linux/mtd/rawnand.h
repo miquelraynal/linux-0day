@@ -178,7 +178,7 @@ enum nand_ecc_algo {
 #define NAND_CONTROLLER_NO_SUBPAGE_WRITE BIT(9)
 /* The controller supports subpage reads */
 #define NAND_CONTROLLER_SUBPAGE_READ BIT(12)
-#define NAND_CONTROLLER_SUPPORTS_SUBPAGE_READS(chip) ((chip->options & NAND_SUBPAGE_READ))
+#define NAND_CONTROLLER_HAS_SUBPAGE_READS(chip) ((chip->controller->flags & NAND_CONTROLLER_SUBPAGE_READ))
 /*
  * This option could be defined by controller drivers to protect against
  * kmap'ed, vmalloc'ed highmem buffers being passed from upper layers
