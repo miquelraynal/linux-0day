@@ -493,10 +493,12 @@ struct nand_sdr_timings {
 
 /**
  * enum nand_data_interface_type - NAND interface timing type
- * @NAND_SDR_IFACE:	Single Data Rate interface
+ * @NAND_SDR_IFACE: ONFI Single Data Rate interface
+ * @NAND_VENDOR_SDR_IFACE: Vendor Single Data Rate interface
  */
 enum nand_data_interface_type {
 	NAND_SDR_IFACE,
+	NAND_SDR_VENDOR_IFACE,
 };
 
 /**
@@ -523,7 +525,8 @@ struct nand_data_interface {
 static inline const struct nand_sdr_timings *
 nand_get_sdr_timings(const struct nand_data_interface *conf)
 {
-	if (conf->type != NAND_SDR_IFACE)
+	if (conf->type != NAND_SDR_IFACE &&
+	    conf->type != NAND_SDR_VENDOR_IFACE)
 		return ERR_PTR(-EINVAL);
 
 	return &conf->timings.sdr;
@@ -1032,6 +1035,7 @@ struct nand_legacy {
  * @lock_area: Lock operation
  * @unlock_area: Unlock operation
  * @setup_read_retry: Set the read-retry mode (mostly needed for MLC NANDs)
+ * @init_data_interface: Find the best data interface
  */
 struct nand_chip_ops {
 	int (*suspend)(struct nand_chip *chip);
@@ -1039,6 +1043,7 @@ struct nand_chip_ops {
 	int (*lock_area)(struct nand_chip *chip, loff_t ofs, uint64_t len);
 	int (*unlock_area)(struct nand_chip *chip, loff_t ofs, uint64_t len);
 	int (*setup_read_retry)(struct nand_chip *chip, int retry_mode);
+	int (*init_data_interface)(struct nand_chip *chip);
 };
 
 /**
