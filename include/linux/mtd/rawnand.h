@@ -100,7 +100,7 @@ enum nand_ecc_algo {
 };
 
 /*
- * ECC engine options and definitions
+ * ECC engine flags and definitions
  */
 
 /* Reset Hardware ECC for read */
