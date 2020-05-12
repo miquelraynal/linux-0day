@@ -2577,7 +2577,7 @@ static int brcmnand_attach_chip(struct nand_chip *chip)
 	 * to/from, and have nand_base pass us a bounce buffer instead, as
 	 * needed.
 	 */
-	ctrl->controller.ops |= NAND_CONTROLLER_USES_DMA;
+	ctrl->controller->flags |= NAND_CONTROLLER_USES_DMA;
 
 	if (chip->bbt_options & NAND_BBT_USE_FLASH)
 		chip->bbt_options |= NAND_BBT_NO_OOB;
