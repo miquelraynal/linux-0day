@@ -1232,7 +1232,7 @@ int denali_chip_init(struct denali_controller *denali,
 
 	/* clk rate info is needed for setup_data_interface */
 	if (!denali->clk_rate || !denali->clk_x_rate)
-		chip->options |= NAND_KEEP_TIMINGS;
+		chip->controller->flags |= NAND_CONTROLLER_KEEP_TIMINGS;
 
 	chip->bbt_options |= NAND_BBT_USE_FLASH;
 	chip->bbt_options |= NAND_BBT_NO_OOB;
