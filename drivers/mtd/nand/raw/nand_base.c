@@ -4653,8 +4653,8 @@ static int nand_get_bits_per_cell(u8 cellinfo)
 {
 	int bits;
 
-	bits = cellinfo & NAND_CI_CELLTYPE_MSK;
-	bits >>= NAND_CI_CELLTYPE_SHIFT;
+	bits = cellinfo & 0x0C;
+	bits >>= 2;
 	return bits + 1;
 }
 
