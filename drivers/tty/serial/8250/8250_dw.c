@@ -37,6 +37,20 @@
 /* DesignWare specific register fields */
 #define DW_UART_MCR_SIRE		BIT(6)
 
+/* Offsets for the Renesas RZ/N1 DesignWare specific registers */
+/* DMA Software Ack */
+#define RZN1_UART_DMASA			0xa8
+/* DMA Control Register Transmit Mode */
+#define RZN1_UART_TDMACR		0x10c
+/* DMA Control Register Receive Mode */
+#define RZN1_UART_RDMACR		0x110
+
+#define RZN1_UART_xDMACR_DMA_EN		BIT(0)
+#define RZN1_UART_xDMACR_1_WORD_BURST	0
+#define RZN1_UART_xDMACR_4_WORD_BURST	BIT(1)
+#define RZN1_UART_xDMACR_8_WORD_BURST	(BIT(1) | BIT(2))
+#define RZN1_UART_xDMACR_BLK_SZ_OFFSET	3
+
 static inline struct dw8250_data *to_dw8250_data(struct dw8250_port_data *data)
 {
 	return container_of(data, struct dw8250_data, data);
@@ -217,6 +231,22 @@ static unsigned int dw8250_serial_in32be(struct uart_port *p, int offset)
 }
 
 
+static void rzn1_8250_handle_irq(struct uart_port *port, unsigned int iir)
+{
+	struct uart_8250_port *up = up_to_u8250p(port);
+	struct uart_8250_dma *dma = up->dma;
+	unsigned char status;
+
+	if (up->dma && dma->rx_running) {
+		status = port->serial_in(port, UART_LSR);
+		if (status & (UART_LSR_DR | UART_LSR_BI)) {
+			/* Stop the DMA transfer */
+			writel(0, port->membase + RZN1_UART_RDMACR);
+			writel(1, port->membase + RZN1_UART_DMASA);
+		}
+	}
+}
+
 static int dw8250_handle_irq(struct uart_port *p)
 {
 	struct uart_8250_port *up = up_to_u8250p(p);
@@ -244,6 +274,9 @@ static int dw8250_handle_irq(struct uart_port *p)
 
 		spin_unlock_irqrestore(&p->lock, flags);
 	}
+
+	if (d->is_rzn1 && ((iir & 0x3f) == UART_IIR_RX_TIMEOUT))
+		rzn1_8250_handle_irq(p, iir);
 
 	if (serial8250_handle_irq(p, iir))
 		return 1;
@@ -366,6 +399,61 @@ static bool dw8250_fallback_dma_filter(struct dma_chan *chan, void *param)
 static bool dw8250_idma_filter(struct dma_chan *chan, void *param)
 {
 	return param == chan->device->dev;
+}
+
+static u32 rzn1_get_dmacr_burst(int max_burst)
+{
+	u32 val = 0;
+
+	if (max_burst >= 8)
+		val = RZN1_UART_xDMACR_8_WORD_BURST;
+	else if (max_burst >= 4)
+		val = RZN1_UART_xDMACR_4_WORD_BURST;
+	else
+		val = RZN1_UART_xDMACR_1_WORD_BURST;
+
+	return val;
+}
+
+static int rzn1_dw8250_tx_dma(struct uart_8250_port *p)
+{
+	struct uart_port		*up = &p->port;
+	struct uart_8250_dma		*dma = p->dma;
+	struct circ_buf			*xmit = &p->port.state->xmit;
+	int tx_size;
+	u32 val;
+
+	if (uart_tx_stopped(&p->port) || dma->tx_running ||
+	    uart_circ_empty(xmit))
+		return 0;
+
+	tx_size = CIRC_CNT_TO_END(xmit->head, xmit->tail, UART_XMIT_SIZE);
+
+	writel(0, up->membase + RZN1_UART_TDMACR);
+	val = rzn1_get_dmacr_burst(dma->txconf.dst_maxburst);
+	val |= tx_size << RZN1_UART_xDMACR_BLK_SZ_OFFSET;
+	val |= RZN1_UART_xDMACR_DMA_EN;
+	writel(val, up->membase + RZN1_UART_TDMACR);
+
+	return serial8250_tx_dma(p);
+}
+
+static int rzn1_dw8250_rx_dma(struct uart_8250_port *p)
+{
+	struct uart_port		*up = &p->port;
+	struct uart_8250_dma		*dma = p->dma;
+	u32 val;
+
+	if (dma->rx_running)
+		return 0;
+
+	writel(0, up->membase + RZN1_UART_RDMACR);
+	val = rzn1_get_dmacr_burst(dma->rxconf.src_maxburst);
+	val |= dma->rx_size << RZN1_UART_xDMACR_BLK_SZ_OFFSET;
+	val |= RZN1_UART_xDMACR_DMA_EN;
+	writel(val, up->membase + RZN1_UART_RDMACR);
+
+	return serial8250_rx_dma(p);
 }
 
 static void dw8250_quirks(struct uart_port *p, struct dw8250_data *data)
@@ -501,6 +589,8 @@ static int dw8250_probe(struct platform_device *pdev)
 		data->msr_mask_off |= UART_MSR_TERI;
 	}
 
+	data->is_rzn1 = of_device_is_compatible(dev->of_node, "renesas,r9a06g032-uart");
+
 	/* Always ask for fixed clock rate from a property. */
 	device_property_read_u32(dev, "clock-frequency", &p->uartclk);
 
@@ -561,6 +651,33 @@ static int dw8250_probe(struct platform_device *pdev)
 		data->data.dma.rxconf.src_maxburst = p->fifosize / 4;
 		data->data.dma.txconf.dst_maxburst = p->fifosize / 4;
 		up->dma = &data->data.dma;
+
+		if (data->is_rzn1) {
+			/*
+			 * When the 'char timeout' irq fires because no more
+			 * data has been received in some time, the 8250 driver
+			 * stops the DMA. However, if the DMAC has been setup to
+			 * write more data to mem than is read from the UART
+			 * FIFO, the data will *not* be written to memory.
+			 * Therefore, we limit the width of writes to mem so
+			 * that it is the same amount of data as read from the
+			 * FIFO. You can use anything less than or equal, but
+			 * same size is optimal.
+			 */
+			data->data.dma.rxconf.dst_addr_width = p->fifosize / 4;
+
+			/*
+			 * Unless you set the maxburst to 1, if you send only 1
+			 * char, it doesn't get transmitted.
+			 */
+			data->data.dma.txconf.dst_maxburst = 1;
+
+			data->data.dma.txconf.device_fc = 1;
+			data->data.dma.rxconf.device_fc = 1;
+
+			uart.dma->tx_dma = rzn1_dw8250_tx_dma;
+			uart.dma->rx_dma = rzn1_dw8250_rx_dma;
+		}
 	}
 
 	data->data.line = serial8250_register_8250_port(up);
