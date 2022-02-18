@@ -677,11 +677,15 @@ static const struct dev_pm_ops dw8250_pm_ops = {
 	SET_RUNTIME_PM_OPS(dw8250_runtime_suspend, dw8250_runtime_resume, NULL)
 };
 
+static const struct dw8250_platform_data rzn1_pdata = {
+	.cpr = 0x00012f32,
+};
+
 static const struct of_device_id dw8250_of_match[] = {
 	{ .compatible = "snps,dw-apb-uart" },
 	{ .compatible = "cavium,octeon-3860-uart" },
 	{ .compatible = "marvell,armada-38x-uart" },
-	{ .compatible = "renesas,rzn1-uart" },
+	{ .compatible = "renesas,rzn1-uart", .data = &rzn1_pdata },
 	{ .compatible = "starfive,jh7100-uart" },
 	{ /* Sentinel */ }
 };
