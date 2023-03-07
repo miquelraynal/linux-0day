@@ -41,7 +41,15 @@ static inline ssize_t of_device_modalias(struct device *dev, char *str,
 	return of_printable_modalias(dev->of_node, str, len);
 }
 
-extern void of_device_uevent(const struct device *dev, struct kobj_uevent_env *env);
+static inline int of_device_uevent(const struct device *dev,
+				   struct kobj_uevent_env *env)
+{
+	if (!dev || !dev->of_node)
+		return -ENODEV;
+
+	return of_uevent(dev->of_node, env);
+}
+
 extern int of_device_uevent_modalias(const struct device *dev, struct kobj_uevent_env *env);
 
 static inline struct device_node *of_cpu_device_node_get(int cpu)
@@ -70,8 +78,11 @@ static inline int of_driver_match_device(struct device *dev,
 	return 0;
 }
 
-static inline void of_device_uevent(const struct device *dev,
-			struct kobj_uevent_env *env) { }
+static inline int of_device_uevent(const struct device *dev,
+				   struct kobj_uevent_env *env)
+{
+	return -ENODEV;
+}
 
 static inline const void *of_device_get_match_data(const struct device *dev)
 {

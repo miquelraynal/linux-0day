@@ -390,6 +390,7 @@ extern ssize_t of_modalias(const struct device_node *np, char *str, ssize_t len)
 extern ssize_t of_printable_modalias(const struct device_node *np, char *str,
 				     ssize_t len);
 extern int of_request_module(const struct device_node *np);
+extern int of_uevent(struct device_node *np, struct kobj_uevent_env *env);
 
 /* phandle iterator functions */
 extern int of_phandle_iterator_init(struct of_phandle_iterator *it,
@@ -761,6 +762,11 @@ static inline ssize_t of_printable_modalias(const struct device_node *np,
 }
 
 static inline int of_request_module(const struct device_node *np)
+{
+	return -ENODEV;
+}
+
+static inline int of_uevent(struct device_node *np, struct kobj_uevent_env *env)
 {
 	return -ENODEV;
 }

@@ -8,6 +8,8 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 
+#include "of_private.h"
+
 ssize_t of_modalias(const struct device_node *np, char *str, ssize_t len)
 {
 	const char *compat;
@@ -91,3 +93,42 @@ int of_request_module(const struct device_node *np)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(of_request_module);
+
+int of_uevent(struct device_node *np, struct kobj_uevent_env *env)
+{
+	const char *compat, *type;
+	struct alias_prop *app;
+	struct property *p;
+	int seen = 0;
+
+	if (!np)
+		return -ENODEV;
+
+	add_uevent_var(env, "OF_NAME=%pOFn", np);
+	add_uevent_var(env, "OF_FULLNAME=%pOF", np);
+	type = of_node_get_device_type(np);
+	if (type)
+		add_uevent_var(env, "OF_TYPE=%s", type);
+
+	/* Since the compatible field can contain pretty much anything
+	 * it's not really legal to split it out with commas. We split it
+	 * up using a number of environment variables instead. */
+	of_property_for_each_string(np, "compatible", p, compat) {
+		add_uevent_var(env, "OF_COMPATIBLE_%d=%s", seen, compat);
+		seen++;
+	}
+	add_uevent_var(env, "OF_COMPATIBLE_N=%d", seen);
+
+	seen = 0;
+	mutex_lock(&of_mutex);
+	list_for_each_entry(app, &aliases_lookup, link) {
+		if (np == app->np) {
+			add_uevent_var(env, "OF_ALIAS_%d=%s", seen,
+				       app->alias);
+			seen++;
+		}
+	}
+	mutex_unlock(&of_mutex);
+
+	return 0;
+}
