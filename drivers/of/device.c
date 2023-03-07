@@ -245,26 +245,3 @@ const void *of_device_get_match_data(const struct device *dev)
 	return match->data;
 }
 EXPORT_SYMBOL(of_device_get_match_data);
-
-int of_device_uevent_modalias(const struct device *dev, struct kobj_uevent_env *env)
-{
-	int sl;
-
-	if ((!dev) || (!dev->of_node) || dev->of_node_reused)
-		return -ENODEV;
-
-	/* Devicetree modalias is tricky, we add it in 2 steps */
-	if (add_uevent_var(env, "MODALIAS="))
-		return -ENOMEM;
-
-	sl = of_modalias(dev->of_node, &env->buf[env->buflen-1],
-			 sizeof(env->buf) - env->buflen);
-	if (sl < 0)
-		return sl;
-	if (sl >= (sizeof(env->buf) - env->buflen))
-		return -ENOMEM;
-	env->buflen += sl;
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(of_device_uevent_modalias);

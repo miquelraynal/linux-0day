@@ -50,7 +50,14 @@ static inline int of_device_uevent(const struct device *dev,
 	return of_uevent(dev->of_node, env);
 }
 
-extern int of_device_uevent_modalias(const struct device *dev, struct kobj_uevent_env *env);
+static inline int of_device_uevent_modalias(const struct device *dev,
+					    struct kobj_uevent_env *env)
+{
+	if (!dev || !dev->of_node || dev->of_node_reused)
+		return -ENODEV;
+
+	return of_uevent_modalias(dev->of_node, env);
+}
 
 static inline struct device_node *of_cpu_device_node_get(int cpu)
 {
