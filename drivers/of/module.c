@@ -44,6 +44,25 @@ ssize_t of_modalias(const struct device_node *np, char *str, ssize_t len)
 	return tsize;
 }
 
+ssize_t of_printable_modalias(const struct device_node *np, char *str, ssize_t len)
+{
+	ssize_t sl;
+
+	if (!np)
+		return -ENODEV;
+
+	sl = of_modalias(np, str, len - 2);
+	if (sl < 0)
+		return sl;
+	if (sl > len - 2)
+		return -ENOMEM;
+
+	str[sl++] = '\n';
+	str[sl] = 0;
+	return sl;
+}
+EXPORT_SYMBOL_GPL(of_printable_modalias);
+
 int of_request_module(const struct device_node *np)
 {
 	char *str;

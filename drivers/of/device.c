@@ -247,31 +247,6 @@ const void *of_device_get_match_data(const struct device *dev)
 EXPORT_SYMBOL(of_device_get_match_data);
 
 /**
- * of_device_modalias - Fill buffer with newline terminated modalias string
- * @dev:	Calling device
- * @str:	Modalias string
- * @len:	Size of @str
- */
-ssize_t of_device_modalias(struct device *dev, char *str, ssize_t len)
-{
-	ssize_t sl;
-
-	if (!dev || !dev->of_node || dev->of_node_reused)
-		return -ENODEV;
-
-	sl = of_modalias(dev->of_node, str, len - 2);
-	if (sl < 0)
-		return sl;
-	if (sl > len - 2)
-		return -ENOMEM;
-
-	str[sl++] = '\n';
-	str[sl] = 0;
-	return sl;
-}
-EXPORT_SYMBOL_GPL(of_device_modalias);
-
-/**
  * of_device_uevent - Display OF related uevent information
  * @dev:	Device to display the uevent information for
  * @env:	Kernel object's userspace event reference to fill up

@@ -387,6 +387,8 @@ extern int of_count_phandle_with_args(const struct device_node *np,
 
 /* module functions */
 extern ssize_t of_modalias(const struct device_node *np, char *str, ssize_t len);
+extern ssize_t of_printable_modalias(const struct device_node *np, char *str,
+				     ssize_t len);
 extern int of_request_module(const struct device_node *np);
 
 /* phandle iterator functions */
@@ -748,6 +750,12 @@ static inline int of_count_phandle_with_args(const struct device_node *np,
 
 static inline ssize_t of_modalias(const struct device_node *np, char *str,
 				  ssize_t len)
+{
+	return -ENODEV;
+}
+
+static inline ssize_t of_printable_modalias(const struct device_node *np,
+					    char *str, ssize_t len)
 {
 	return -ENODEV;
 }
