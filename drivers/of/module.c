@@ -132,6 +132,7 @@ int of_uevent(struct device_node *np, struct kobj_uevent_env *env)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(of_uevent);
 
 int of_uevent_modalias(const struct device_node *np, struct kobj_uevent_env *env)
 {
